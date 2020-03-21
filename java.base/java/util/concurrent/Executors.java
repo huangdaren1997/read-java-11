@@ -84,6 +84,9 @@ public class Executors {
      * execute subsequent tasks.  The threads in the pool will exist
      * until it is explicitly {@link ExecutorService#shutdown shutdown}.
      *
+     * 既然是固定数量的线程池，那么核心线程数和最大线程数必然是一样的，同时线程也不会因为闲置而被回收
+     * 潜在危险：当任务增长速度远大于任务的处理速度，将会有大量的任务放置在工作队列中，有可能导致OOM问题
+     *
      * @param nThreads the number of threads in the pool
      * @return the newly created thread pool
      * @throws IllegalArgumentException if {@code nThreads <= 0}
@@ -617,13 +620,11 @@ public class Executors {
 
         DefaultThreadFactory() {
             SecurityManager s = System.getSecurityManager();
-            group = (s != null) ? s.getThreadGroup() :
-                                  Thread.currentThread().getThreadGroup();
-            namePrefix = "pool-" +
-                          poolNumber.getAndIncrement() +
-                         "-thread-";
+            group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+            namePrefix = "pool-" + poolNumber.getAndIncrement() + "-thread-";
         }
 
+        @Override
         public Thread newThread(Runnable r) {
             Thread t = new Thread(group, r,
                                   namePrefix + threadNumber.getAndIncrement(),

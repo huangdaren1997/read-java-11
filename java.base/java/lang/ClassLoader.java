@@ -567,9 +567,11 @@ public abstract class ClassLoader {
     {
         synchronized (getClassLoadingLock(name)) {
             // First, check if the class has already been loaded
+            // 检查该类是否已经被加载
             Class<?> c = findLoadedClass(name);
             if (c == null) {
                 long t0 = System.nanoTime();
+                // 尝试使用父类加载器加载该类
                 try {
                     if (parent != null) {
                         c = parent.loadClass(name, false);

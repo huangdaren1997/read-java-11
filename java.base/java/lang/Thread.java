@@ -380,6 +380,7 @@ class Thread implements Runnable {
 
     /**
      * Initializes a Thread.
+     * todo 创建线程对象的构造器，做了什么？
      *
      * @param g the Thread group
      * @param target the object whose run() method gets called
@@ -790,12 +791,14 @@ class Thread implements Runnable {
          *
          * A zero status value corresponds to state "NEW".
          */
+        /** 检查线程状态，调用非新建状态下的线程的start方法，会报错线程状态异常错误 */
         if (threadStatus != 0)
             throw new IllegalThreadStateException();
 
         /* Notify the group that this thread is about to be started
          * so that it can be added to the group's list of threads
          * and the group's unstarted count can be decremented. */
+        /** 通知线程组，该线程即将被启动 */
         group.add(this);
 
         boolean started = false;
@@ -982,6 +985,7 @@ class Thread implements Runnable {
      * @spec JSR-51
      */
     public void interrupt() {
+        // 如果是别的线程来中断该线程，需要先做安全检查，期间可能会抛出SecurityException异常
         if (this != Thread.currentThread()) {
             checkAccess();
 
@@ -995,7 +999,7 @@ class Thread implements Runnable {
                 }
             }
         }
-
+        // 如果是自己中断自己，则无需做安全检查，同时是自己中断自己，所以此时自身不可能处于阻塞状态，直接调用interrupt0
         // set interrupt status
         interrupt0();
     }
