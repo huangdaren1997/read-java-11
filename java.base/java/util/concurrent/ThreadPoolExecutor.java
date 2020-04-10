@@ -321,6 +321,16 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ThreadPoolExecutor extends AbstractExecutorService {
     /**
+     * 线程池生命周期的记录:把Integer的32位分成两部分，高3位用来记录线程池的状态，剩下的29位用来记录线程池中的线程数
+     * 线程状态：
+     *  RUNNING ： 接受新任务，处理队列中的任务
+     *  SHUTDOWN: 不接受新任务，但是处理队列中的任务
+     *  STOP:     不接受新任务，不处理队列中的任务，中断正在执行的任务（interrupt）
+     *  TIDYING:  All tasks have terminated, workerCount is zero,
+     *           the thread transitioning to state TIDYING
+     *           will run the terminated() hook method
+     * TERMINATED: terminated() has completed
+     *
      * The main pool control state, ctl, is an atomic integer packing
      * two conceptual fields
      *   workerCount, indicating the effective number of threads
@@ -378,15 +388,15 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * below).
      */
     private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
-    private static final int COUNT_BITS = Integer.SIZE - 3;
+    private static final int COUNT_BITS = Integer.SIZE - 3; // 32 -3 = 29
     private static final int COUNT_MASK = (1 << COUNT_BITS) - 1;
 
     // runState is stored in the high-order bits
-    private static final int RUNNING    = -1 << COUNT_BITS;
-    private static final int SHUTDOWN   =  0 << COUNT_BITS;
-    private static final int STOP       =  1 << COUNT_BITS;
-    private static final int TIDYING    =  2 << COUNT_BITS;
-    private static final int TERMINATED =  3 << COUNT_BITS;
+    private static final int RUNNING    = -1 << COUNT_BITS;  // ‭101 0_0000_0000_0000_0000_0000_0000_0000‬
+    private static final int SHUTDOWN   =  0 << COUNT_BITS;  // ‭000 0_0000_0000_0000_0000_0000_0000_0000
+    private static final int STOP       =  1 << COUNT_BITS;  // ‭001 0_0000_0000_0000_0000_0000_0000_0000
+    private static final int TIDYING    =  2 << COUNT_BITS;  // ‭010 0_0000_0000_0000_0000_0000_0000_0000
+    private static final int TERMINATED =  3 << COUNT_BITS;  // 011 0_0000_0000_0000_0000_0000_0000_0000
 
     // Packing and unpacking ctl
     private static int runStateOf(int c)     { return c & ~COUNT_MASK; }
