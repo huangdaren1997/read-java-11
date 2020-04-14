@@ -897,22 +897,23 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         for (int c = ctl.get();;) {
             // Check if queue empty only if necessary.
             // 满足以下条件其中之一，返回添加worker失败
-            // 1.线程池状态处于STOP或之后的状态
-            // 2.firstTask != null
-            // 3.workQueue.isEmpty()
-            if (runStateAtLeast(c, SHUTDOWN)
-                && (runStateAtLeast(c, STOP)
-                    || firstTask != null
-                    || workQueue.isEmpty()))
-                return false;
+            // 1.线程池处于STOP或之后的状态
+            // 2.线程池处于SHUTDOWN状态且firstTask != null
+            // 3.线程池处于SHUTDOWN状态且workQueue.isEmpty()
+            if (runStateAtLeast(c, SHUTDOWN) &&
+                    (runStateAtLeast(c, STOP) || firstTask != null || workQueue.isEmpty())
+            ) return false;
 
             for (;;) {
-                if (workerCountOf(c)
-                    >= ((core ? corePoolSize : maximumPoolSize) & COUNT_MASK)) // 判断当前线程数是否超过了目标值，如果core为true则目标值是corePoolSize，否则是maximumPoolSize
-                    return false; // 超过了目标值，添加worker失败
+                // 1.判断当前线程数是否超过了目标值，如果core为true则目标值是corePoolSize，否则是maximumPoolSize
+                // 2.线程数+1
+                //  操作成功：跳出循环
+                //  操作失败且线程池处于SHUTDOWN之前：自旋
+                //  操作失败且线程池处于SHUTDOWN或之后：重新执行外部循环
+                if (workerCountOf(c) >= ((core ? corePoolSize : maximumPoolSize) & COUNT_MASK)) return false;
                 if (compareAndIncrementWorkerCount(c))
                     break retry;
-                c = ctl.get();  // Re-read ctl
+                c = ctl.get();  // 重新获取ctl的值
                 if (runStateAtLeast(c, SHUTDOWN))
                     continue retry;
                 // else CAS failed due to workerCount change; retry inner loop
@@ -1131,10 +1132,12 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 // if not, ensure thread is not interrupted.  This
                 // requires a recheck in second case to deal with
                 // shutdownNow race while clearing interrupt
-                if ((runStateAtLeast(ctl.get(), STOP) ||
-                     (Thread.interrupted() &&
-                      runStateAtLeast(ctl.get(), STOP))) &&
-                    !wt.isInterrupted())
+                if (
+                        (
+                                runStateAtLeast(ctl.get(), STOP) || (Thread.interrupted() && runStateAtLeast(ctl.get(), STOP))
+                        ) &&
+                                !wt.isInterrupted()
+                )
                     wt.interrupt();
                 try {
                     beforeExecute(wt, task);
@@ -1153,6 +1156,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             }
             completedAbruptly = false;
         } finally {
+            // 没有任务可以执行/任务执行过程中出现了异常，回收worker线程
             processWorkerExit(w, completedAbruptly);
         }
     }
@@ -1354,6 +1358,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
          */
         int c = ctl.get();
         if (workerCountOf(c) < corePoolSize) {
+            // 当前线程数小于核心线程数，尝试添加worker
             if (addWorker(command, true))
                 return;
             c = ctl.get();

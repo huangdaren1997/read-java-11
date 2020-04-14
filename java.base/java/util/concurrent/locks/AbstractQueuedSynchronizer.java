@@ -313,10 +313,10 @@ public abstract class AbstractQueuedSynchronizer
     protected AbstractQueuedSynchronizer() { }
 
     /**
-     * Wait queue node class.
+     * Wait queue node class. 同步队列的节点类
      *
-     * <p>The wait queue is a variant of a "CLH" (Craig, Landin, and
-     * Hagersten) lock queue. CLH locks are normally used for
+     * <p>The wait queue is a variant of a "CLH" (Craig, Landin, and   这里的同步队列是"CLH"锁队列的一种变种。
+     * Hagersten) lock queue. CLH locks are normally used for          CLH锁常用于自旋锁
      * spinlocks.  We instead use them for blocking synchronizers, but
      * use the same basic tactic of holding some of the control
      * information about a thread in the predecessor of its node.  A
@@ -561,6 +561,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
+     * 同步队列的头节点
      * Head of the wait queue, lazily initialized.  Except for
      * initialization, it is modified only via method setHead.  Note:
      * If head exists, its waitStatus is guaranteed not to be
@@ -569,12 +570,14 @@ public abstract class AbstractQueuedSynchronizer
     private transient volatile Node head;
 
     /**
+     * 同步队列的尾节点
      * Tail of the wait queue, lazily initialized.  Modified only via
      * method enq to add new wait node.
      */
     private transient volatile Node tail;
 
     /**
+     * 同步状态
      * The synchronization state.
      */
     private volatile int state;
