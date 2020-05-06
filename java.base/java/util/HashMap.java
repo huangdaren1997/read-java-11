@@ -230,27 +230,27 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * avoid aliasing errors amid all of the twisty pointer operations.
      */
 
+    // 数组的初始化容量，默认是16
     /**
      * The default initial capacity - MUST be a power of two.
-     * 数组的初始化容量，默认是16
      */
     static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
 
+    // 数组的默认最大容量,必须是2的指数幂
     /**
      * The maximum capacity, used if a higher value is implicitly specified
      * by either of the constructors with arguments.
      * MUST be a power of two <= 1<<30.
-     * 数组的最大容量,必须是2的指数幂
      */
     static final int MAXIMUM_CAPACITY = 1 << 30;
 
+    // 默认负载因子，用来衡量HashMap的负载程度，loadFactor = size / capacity  ， size：键值对的总数
     /**
      * The load factor used when none specified in constructor.
-     * 默认负载因子，用来衡量HashMap的负载程度，loadFactor = size / capacity
-     * size：键值对的总数
      */
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
+    // Java的HashMap是基于拉链法的哈希表实现，当出现hash冲突时，会用链表来存储数据, 当链表中元素个数大于TREEIFY_THRESHOLD时，把链表转换成红黑树
     /**
      * The bin count threshold for using a tree rather than list for a
      * bin.  Bins are converted to trees when adding an element to a
@@ -258,8 +258,6 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * than 2 and should be at least 8 to mesh with assumptions in
      * tree removal about conversion back to plain bins upon
      * shrinkage.
-     * 树化门槛，当链表中元素个数等于8时，把链表转换成红黑树
-     * Java的HashMap是基于拉链法的哈希表实现，当出现hash冲突时，会用链表来存储数据
      */
     static final int TREEIFY_THRESHOLD = 8;
 
@@ -267,10 +265,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * The bin count threshold for untreeifying a (split) bin during a
      * resize operation. Should be less than TREEIFY_THRESHOLD, and at
      * most 6 to mesh with shrinkage detection under removal.
-     * 退树化门槛
+     *
      */
     static final int UNTREEIFY_THRESHOLD = 6;
 
+    // 当数组的容量大于MIN_TREEIFY_CAPACITY时，才允许把链表转换成红黑树
     /**
      * The smallest table capacity for which bins may be treeified.
      * (Otherwise the table is resized if too many nodes in a bin.)
@@ -327,8 +326,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 
     /* ---------------- Static utilities -------------- */
 
+    // 对key进行hash运算，key的hashCode低16位与高16位异或
     /**
-     * 对key进行hash运算，key的hashCode低16位与高16位异或
      * Computes key.hashCode() and spreads (XORs) higher bits of hash
      * to lower.  Because the table uses power-of-two masking, sets of
      * hashes that vary only in bits above the current mask will
@@ -572,18 +571,21 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * @return the node, or null if none
      */
     final Node<K,V> getNode(int hash, Object key) {
-        Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
-        if ((tab = table) != null && (n = tab.length) > 0 &&
-            (first = tab[(n - 1) & hash]) != null) {
-            if (first.hash == hash && // always check first node
-                ((k = first.key) == key || (key != null && key.equals(k))))
+        Node<K,V>[] tab;
+        Node<K,V> first, e;
+        int n;
+        K k;
+
+        if ((tab = table) != null && (n = tab.length) > 0 && (first = tab[(n - 1) & hash]) != null) {
+            // always check first node
+            // 检查第一个节点，匹配成功直接返回
+            if (first.hash == hash && ((k = first.key) == key || (key != null && key.equals(k))))
                 return first;
             if ((e = first.next) != null) {
                 if (first instanceof TreeNode)
                     return ((TreeNode<K,V>)first).getTreeNode(hash, key);
                 do {
-                    if (e.hash == hash &&
-                        ((k = e.key) == key || (key != null && key.equals(k))))
+                    if (e.hash == hash && ((k = e.key) == key || (key != null && key.equals(k))))
                         return e;
                 } while ((e = e.next) != null);
             }
