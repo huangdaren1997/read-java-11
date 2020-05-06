@@ -57,6 +57,10 @@ import java.util.concurrent.TimeUnit;
  * #setState} and {@link #compareAndSetState} is tracked with respect
  * to synchronization.
  *
+ * 提供一个基于FIFO同步队列实现的阻塞锁和相关synchronizers的框架
+ *
+ *
+ *
  * <p>Subclasses should be defined as non-public internal helper
  * classes that are used to implement the synchronization properties
  * of their enclosing class.  Class
