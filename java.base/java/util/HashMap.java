@@ -250,7 +250,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
-    // Java的HashMap是基于拉链法的哈希表实现，当出现hash冲突时，会用链表来存储数据, 当链表中元素个数大于TREEIFY_THRESHOLD时，把链表转换成红黑树
+    // Java的HashMap是基于拉链法的哈希表实现，当出现hash冲突时，会用链表来存储数据, 当链表中元素个数大于TREEIFY_THRESHOLD，把链表转换成红黑树 （前提是数组的容量大于MIN_TREEIFY_CAPACITY）
     /**
      * The bin count threshold for using a tree rather than list for a
      * bin.  Bins are converted to trees when adding an element to a
@@ -261,6 +261,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     static final int TREEIFY_THRESHOLD = 8;
 
+    // 红黑树转回链表的阈值,resize时，当链表长度小于等于6时，会退化成链表
     /**
      * The bin count threshold for untreeifying a (split) bin during a
      * resize operation. Should be less than TREEIFY_THRESHOLD, and at
@@ -381,9 +382,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 ((Comparable)k).compareTo(x));
     }
 
+    // 如果cap是2的指数幂返回cap，否则返回 cap*2向下取整2的指数幂 例如31:  31*2 = 62  向下取整2的指数幂是32 返回32
     /**
      * Returns a power of two size for the given target capacity.
-     * 如果cap是2的指数幂返回cap，否则返回 cap*2向下取整2的指数幂 例如31:  31*2 = 62  向下取整2的指数幂是32 返回32
      */
     static final int tableSizeFor(int cap) {
         // Integer.numberOfLeadingZeros(x) x的二进制表示，从高位到低位，连续0的个数
@@ -407,6 +408,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     transient Set<Map.Entry<K,V>> entrySet;
 
+    // hashmap存储的键值对的个数
     /**
      * The number of key-value mappings contained in this map.
      */
@@ -421,6 +423,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     transient int modCount;
 
+    // 扩容门槛，size>threshold时进行扩容操作，hashmap不支持动态缩容
     /**
      * The next size value at which to resize (capacity * load factor).
      * 数组扩容门槛，当存储的元素个数(size)超过该门槛时，对数组进行扩容
@@ -432,9 +435,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     // DEFAULT_INITIAL_CAPACITY.)
     int threshold;
 
+    // 负载因子，用来衡量HashMap满的程度，loadFactor = size/capacity
     /**
      * The load factor for the hash table.
-     * 负载因子
      * @serial
      */
     final float loadFactor;
@@ -635,15 +638,15 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                    boolean evict) {
         Node<K,V>[] tab;
         Node<K,V> p;
-        int n; // 数组容量
-        int i;
+        int n; // 当前数组容量
+        int i; // 该元素对应数组中的索引
 
         // 如果数组还没初始化，先进行初始化工作
         if ((tab = table) == null || (n = tab.length) == 0)
             n = (tab = resize()).length;
 
         // 这个位置目前还没有存储数据，可以直接使用
-        if ((p = tab[i = (n - 1) & hash]) == null)
+        if ((p = tab[i = (n - 1) & hash]) == null) // i = (n - 1) & hash hash值与索引的关系，其实就是取模，两个正整数取模等于两个正数的与运算
             tab[i] = newNode(hash, key, value, null);
 
         else {
@@ -704,7 +707,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final Node<K,V>[] resize() {
         Node<K,V>[] oldTab = table;
-        int oldCap = (oldTab == null) ? 0 : oldTab.length; // 旧数组的容量
+        int oldCap = (oldTab == null) ? 0 : oldTab.length; // 旧数组的容量,必然是2的指数幂
         int oldThr = threshold;  // 旧的数组扩容门槛，使用new HashMap()时，threshold初始值为0
         int newCap, newThr = 0;
 
@@ -2235,6 +2238,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             for (TreeNode<K,V> e = b, next; e != null; e = next) {
                 next = (TreeNode<K,V>)e.next;
                 e.next = null;
+
+                // bit是数组容量，必然是2的指数幂，一个数与2的指数幂进行与运算，只有两种结果，0或该2的指数幂
+                // 因此可以拉出两条链表
                 if ((e.hash & bit) == 0) {
                     if ((e.prev = loTail) == null)
                         loHead = e;
@@ -2252,6 +2258,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     ++hc;
                 }
             }
+
+            // 对两条链表进行后续处理，把低链插入到数组的低位(index)，高链插入到数组的高位(index+bit)
+            // 如果链表长度小于等于UNTREEIFY_THRESHOLD (6) 则退化成链表, 否则对链表重新红黑树树化
 
             if (loHead != null) {
                 if (lc <= UNTREEIFY_THRESHOLD)
