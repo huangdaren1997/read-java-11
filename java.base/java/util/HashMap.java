@@ -646,7 +646,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             n = (tab = resize()).length;
 
         // 这个位置目前还没有存储数据，可以直接使用
-        if ((p = tab[i = (n - 1) & hash]) == null) // i = (n - 1) & hash hash值与索引的关系，其实就是取模，两个正整数取模等于两个正数的与运算
+        if ((p = tab[i = (n - 1) & hash]) == null) // i = (n - 1) & hash hash值与索引的关系
             tab[i] = newNode(hash, key, value, null);
 
         else {

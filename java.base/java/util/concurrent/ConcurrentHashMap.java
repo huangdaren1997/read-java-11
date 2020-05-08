@@ -498,6 +498,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
 
     /* ---------------- Constants -------------- */
 
+    // 数组的最大长度
     /**
      * The largest possible table capacity.  This value must be
      * exactly 1<<30 to stay within Java array allocation and indexing
@@ -507,12 +508,14 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      */
     private static final int MAXIMUM_CAPACITY = 1 << 30;
 
+    // 数组的默认长度
     /**
      * The default initial table capacity.  Must be a power of 2
      * (i.e., at least 1) and at most MAXIMUM_CAPACITY.
      */
     private static final int DEFAULT_CAPACITY = 16;
 
+    // 数组的最大长度
     /**
      * The largest possible (non-power of two) array size.
      * Needed by toArray and related methods.
@@ -677,6 +680,11 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
 
     /* ---------------- Static utilities -------------- */
 
+    // h ^ (h >>> 16) 高16位和低16位进行异或
+    // (h ^ (h >>> 16)) & HASH_BITS 保证最高位为0
+    // 为什么要保证最高位为0？
+    // 因为求索引是通过hash与数组的最大索引值做与运算  i=hash&(n-1)
+    // 只要hash为负数，则i等于n-1,导致这些元素都放在tab[n-1]位置
     /**
      * Spreads (XORs) higher bits of hash to lower and also forces top
      * bit to 0. Because the table uses power-of-two masking, sets of
@@ -1008,18 +1016,18 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
 
     /** Implementation for put and putIfAbsent */
     final V putVal(K key, V value, boolean onlyIfAbsent) {
-        if (key == null || value == null) throw new NullPointerException();
+        if (key == null || value == null) throw new NullPointerException(); // ConcurrentHashMap的key和value都不能为null
         int hash = spread(key.hashCode());
         int binCount = 0;
         for (Node<K,V>[] tab = table;;) {
-            Node<K,V> f; int n, i, fh; K fk; V fv;
-            if (tab == null || (n = tab.length) == 0)
+            Node<K,V> f; int n, i, fh; K fk; V fv; // n 数组长度 i 数组索引
+            if (tab == null || (n = tab.length) == 0) // 数组还没初始化，先进行初始化操作
                 tab = initTable();
-            else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
+            else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) { // 索引对应的位置目前还没有被使用，尝试使用cas往该位置新增元素
                 if (casTabAt(tab, i, null, new Node<K,V>(hash, key, value)))
                     break;                   // no lock when adding to empty bin
             }
-            else if ((fh = f.hash) == MOVED)
+            else if ((fh = f.hash) == MOVED) // 这是干嘛？
                 tab = helpTransfer(tab, f);
             else if (onlyIfAbsent // check first node without acquiring lock
                      && fh == hash
@@ -1052,8 +1060,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                         else if (f instanceof TreeBin) {
                             Node<K,V> p;
                             binCount = 2;
-                            if ((p = ((TreeBin<K,V>)f).putTreeVal(hash, key,
-                                                           value)) != null) {
+                            if ((p = ((TreeBin<K,V>)f).putTreeVal(hash, key, value)) != null) {
                                 oldVal = p.val;
                                 if (!onlyIfAbsent)
                                     p.val = value;
