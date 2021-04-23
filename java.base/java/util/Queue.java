@@ -136,6 +136,8 @@ package java.util;
  * @param <E> the type of elements held in this queue
  */
 public interface Queue<E> extends Collection<E> {
+
+    // 添加元素到队列,如果添加成功,返回true,如果队列已经满了,抛出IllegalStateException
     /**
      * Inserts the specified element into this queue if it is possible to do so
      * immediately without violating capacity restrictions, returning
@@ -155,6 +157,7 @@ public interface Queue<E> extends Collection<E> {
      */
     boolean add(E e);
 
+    // 添加元素到队列,如果添加成功,返回true,否则返回false
     /**
      * Inserts the specified element into this queue if it is possible to do
      * so immediately without violating capacity restrictions.
@@ -174,6 +177,7 @@ public interface Queue<E> extends Collection<E> {
      */
     boolean offer(E e);
 
+    // 头部元素出队,如果队列为空,抛出NoSuchElementException
     /**
      * Retrieves and removes the head of this queue.  This method differs
      * from {@link #poll() poll()} only in that it throws an exception if
@@ -184,6 +188,7 @@ public interface Queue<E> extends Collection<E> {
      */
     E remove();
 
+    // 头部元素出队,如果队列为空,返回null
     /**
      * Retrieves and removes the head of this queue,
      * or returns {@code null} if this queue is empty.
