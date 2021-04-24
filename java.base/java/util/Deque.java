@@ -35,6 +35,7 @@
 
 package java.util;
 
+// 简单来说,一般都是使用offer poll peek开头的方法,其它方法都有毒
 /**
  * A linear collection that supports element insertion and removal at
  * both ends.  The name <i>deque</i> is short for "double ended queue"

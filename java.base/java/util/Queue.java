@@ -35,6 +35,7 @@
 
 package java.util;
 
+// 简而言之,一般都是使用 offer poll peek等方法,其它方法都有毒
 /**
  * A collection designed for holding elements prior to processing.
  * Besides basic {@link Collection} operations, queues provide
@@ -197,6 +198,7 @@ public interface Queue<E> extends Collection<E> {
      */
     E poll();
 
+    // 访问队列中的头一个元素,如果队列为空,抛出NoSuchElementException异常
     /**
      * Retrieves, but does not remove, the head of this queue.  This method
      * differs from {@link #peek peek} only in that it throws an exception
@@ -207,6 +209,7 @@ public interface Queue<E> extends Collection<E> {
      */
     E element();
 
+    // 访问队列中的头一个元素,如果队列为空,返回null
     /**
      * Retrieves, but does not remove, the head of this queue,
      * or returns {@code null} if this queue is empty.
