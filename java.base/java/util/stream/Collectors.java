@@ -264,6 +264,7 @@ public final class Collectors {
     }
 
     /**
+     * 返回一个收集器,用于把输入的元素存放到一个列表中
      * Returns a {@code Collector} that accumulates the input elements into a
      * new {@code List}. There are no guarantees on the type, mutability,
      * serializability, or thread-safety of the {@code List} returned; if more
@@ -358,6 +359,7 @@ public final class Collectors {
     }
 
     /**
+     * 返回一个收集器,用于把输入的元素转成字符串并拼接在一起
      * Returns a {@code Collector} that concatenates the input elements into a
      * {@code String}, in encounter order.
      *
@@ -372,6 +374,7 @@ public final class Collectors {
     }
 
     /**
+     * 返回一个收集器,用于把输入的元素转成字符串并拼接在一起
      * Returns a {@code Collector} that concatenates the input elements,
      * separated by the specified delimiter, in encounter order.
      *
@@ -384,6 +387,7 @@ public final class Collectors {
     }
 
     /**
+     * 返回一个收集器,用于把输入的元素转成字符串并拼接在一起
      * Returns a {@code Collector} that concatenates the input elements,
      * separated by the specified delimiter, with the specified prefix and
      * suffix, in encounter order.
@@ -427,6 +431,7 @@ public final class Collectors {
     }
 
     /**
+     * 对输入的原数进行装换,然后交由{@param downstream}收集
      * Adapts a {@code Collector} accepting elements of type {@code U} to one
      * accepting elements of type {@code T} by applying a mapping function to
      * each input element before accumulation.

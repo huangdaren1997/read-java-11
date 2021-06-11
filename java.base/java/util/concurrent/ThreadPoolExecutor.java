@@ -392,10 +392,10 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     private static final int COUNT_MASK = (1 << COUNT_BITS) - 1;
 
     // runState is stored in the high-order bits
-    private static final int RUNNING    = -1 << COUNT_BITS;  // ‭1010_0000_0000_0000_0000_0000_0000_0000‬
-    private static final int SHUTDOWN   =  0 << COUNT_BITS;  // ‭0000_0000_0000_0000_0000_0000_0000_0000
-    private static final int STOP       =  1 << COUNT_BITS;  // ‭0010_0000_0000_0000_0000_0000_0000_0000
-    private static final int TIDYING    =  2 << COUNT_BITS;  // ‭0100_0000_0000_0000_0000_0000_0000_0000
+    private static final int RUNNING    = -1 << COUNT_BITS;  // 1010_0000_0000_0000_0000_0000_0000_0000
+    private static final int SHUTDOWN   =  0 << COUNT_BITS;  // 0000_0000_0000_0000_0000_0000_0000_0000
+    private static final int STOP       =  1 << COUNT_BITS;  // 0010_0000_0000_0000_0000_0000_0000_0000
+    private static final int TIDYING    =  2 << COUNT_BITS;  // 0100_0000_0000_0000_0000_0000_0000_0000
     private static final int TERMINATED =  3 << COUNT_BITS;  // 0110_0000_0000_0000_0000_0000_0000_0000
 
     // Packing and unpacking ctl
@@ -1357,12 +1357,13 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
          * and so reject the task.
          */
         int c = ctl.get();
+        // 当前线程数小于核心线程数，尝试添加worker来执行该任务
         if (workerCountOf(c) < corePoolSize) {
-            // 当前线程数小于核心线程数，尝试添加worker
             if (addWorker(command, true))
                 return;
             c = ctl.get();
         }
+        // 如果线程池处于运行状态,尝试把任务添加到工作队列
         if (isRunning(c) && workQueue.offer(command)) {
             int recheck = ctl.get();
             if (! isRunning(recheck) && remove(command))
@@ -1370,8 +1371,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             else if (workerCountOf(recheck) == 0)
                 addWorker(null, false);
         }
-        else if (!addWorker(command, false))
-            reject(command);
+        // 当前线程数大于等于核心线程数,且无法把任务添加到工作队列,尝试添加worker来执行该任务
+        // 如果还是失败,则使用拒绝策略来处理
+        else if (!addWorker(command, false)) reject(command);
     }
 
     /**
