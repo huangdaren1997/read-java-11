@@ -862,9 +862,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         return taskList;
     }
 
-    /*
-     * Methods for creating, running and cleaning up after workers
-     */
+    // Methods for creating, running and cleaning up after workers
 
     /**
      * Checks if a new worker can be added with respect to current
@@ -1271,6 +1269,21 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     }
 
     /**
+     * 根据给定参数创建线程池
+     * corePoolSize    :核心线程数
+     * maximumPoolSize :最大线程数 (超出核心线程的线程,我称为额外线程)
+     * keepAliveTime   :额外线程空闲后的存活时间
+     * unit            :存活时间的单位
+     * workQueue       :存放任务的队列
+     * threadFactory   :创建线程的线程工厂
+     * handler         :线程池已经满负荷,无法再接受新的任务,把新提交的任务交由handler处理
+     *
+     * 创建线程池
+     *  提交任务->创建核心线程
+     *  提交任务->核心线程满了->任务添加到工作队列
+     *  提交任务->核心线程满了->工作队列满了->创建额外线程
+     *  提交任务->核心线程满了->工作队列满了->额外线程也满了->任务交由handler处理
+     *
      * Creates a new {@code ThreadPoolExecutor} with the given initial
      * parameters.
      *
@@ -1375,6 +1388,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         // 如果还是失败,则使用拒绝策略来处理
         else if (!addWorker(command, false)) reject(command);
     }
+
+    // 线程池生命周期管理
 
     /**
      * Initiates an orderly shutdown in which previously submitted
@@ -1492,6 +1507,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     @Deprecated(since="9")
     protected void finalize() {}
 
+    // 构造参数的 Getter & Setter
+
     /**
      * Sets the thread factory used to create new threads.
      *
@@ -1582,89 +1599,6 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     }
 
     /**
-     * Starts a core thread, causing it to idly wait for work. This
-     * overrides the default policy of starting core threads only when
-     * new tasks are executed. This method will return {@code false}
-     * if all core threads have already been started.
-     *
-     * @return {@code true} if a thread was started
-     */
-    public boolean prestartCoreThread() {
-        return workerCountOf(ctl.get()) < corePoolSize &&
-            addWorker(null, true);
-    }
-
-    /**
-     * Same as prestartCoreThread except arranges that at least one
-     * thread is started even if corePoolSize is 0.
-     */
-    void ensurePrestart() {
-        int wc = workerCountOf(ctl.get());
-        if (wc < corePoolSize)
-            addWorker(null, true);
-        else if (wc == 0)
-            addWorker(null, false);
-    }
-
-    /**
-     * Starts all core threads, causing them to idly wait for work. This
-     * overrides the default policy of starting core threads only when
-     * new tasks are executed.
-     *
-     * @return the number of threads started
-     */
-    public int prestartAllCoreThreads() {
-        int n = 0;
-        while (addWorker(null, true))
-            ++n;
-        return n;
-    }
-
-    /**
-     * Returns true if this pool allows core threads to time out and
-     * terminate if no tasks arrive within the keepAlive time, being
-     * replaced if needed when new tasks arrive. When true, the same
-     * keep-alive policy applying to non-core threads applies also to
-     * core threads. When false (the default), core threads are never
-     * terminated due to lack of incoming tasks.
-     *
-     * @return {@code true} if core threads are allowed to time out,
-     *         else {@code false}
-     *
-     * @since 1.6
-     */
-    public boolean allowsCoreThreadTimeOut() {
-        return allowCoreThreadTimeOut;
-    }
-
-    /**
-     * Sets the policy governing whether core threads may time out and
-     * terminate if no tasks arrive within the keep-alive time, being
-     * replaced if needed when new tasks arrive. When false, core
-     * threads are never terminated due to lack of incoming
-     * tasks. When true, the same keep-alive policy applying to
-     * non-core threads applies also to core threads. To avoid
-     * continual thread replacement, the keep-alive time must be
-     * greater than zero when setting {@code true}. This method
-     * should in general be called before the pool is actively used.
-     *
-     * @param value {@code true} if should time out, else {@code false}
-     * @throws IllegalArgumentException if value is {@code true}
-     *         and the current keep-alive time is not greater than zero
-     *
-     * @since 1.6
-     */
-    public void allowCoreThreadTimeOut(boolean value) {
-        if (value && keepAliveTime <= 0)
-            throw new IllegalArgumentException("Core threads must have nonzero keep alive times");
-        if (value != allowCoreThreadTimeOut) {
-            allowCoreThreadTimeOut = value;
-            if (value)
-                interruptIdleWorkers();
-        }
-    }
-
-    /**
      * Sets the maximum allowed number of threads. This overrides any
      * value set in the constructor. If the new value is smaller than
      * the current value, excess existing threads will be
@@ -1738,7 +1672,96 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         return unit.convert(keepAliveTime, TimeUnit.NANOSECONDS);
     }
 
-    /* User-level queue utilities */
+
+
+    /**
+     * 核心线程预热,通常是有任务才会创建核心线程
+     * 该方法会直接创建一个核心线程,让他等待任务
+     * 如果核心线程数已满,该方法返回false
+     * Starts a core thread, causing it to idly wait for work. This
+     * overrides the default policy of starting core threads only when
+     * new tasks are executed. This method will return {@code false}
+     * if all core threads have already been started.
+     *
+     * @return {@code true} if a thread was started
+     */
+    public boolean prestartCoreThread() {
+        return workerCountOf(ctl.get()) < corePoolSize &&
+            addWorker(null, true);
+    }
+
+    /**
+     * Same as prestartCoreThread except arranges that at least one
+     * thread is started even if corePoolSize is 0.
+     */
+    void ensurePrestart() {
+        int wc = workerCountOf(ctl.get());
+        if (wc < corePoolSize)
+            addWorker(null, true);
+        else if (wc == 0)
+            addWorker(null, false);
+    }
+
+    /**
+     * Starts all core threads, causing them to idly wait for work. This
+     * overrides the default policy of starting core threads only when
+     * new tasks are executed.
+     *
+     * @return the number of threads started
+     */
+    public int prestartAllCoreThreads() {
+        int n = 0;
+        while (addWorker(null, true))
+            ++n;
+        return n;
+    }
+
+    /**
+     * Returns true if this pool allows core threads to time out and
+     * terminate if no tasks arrive within the keepAlive time, being
+     * replaced if needed when new tasks arrive. When true, the same
+     * keep-alive policy applying to non-core threads applies also to
+     * core threads. When false (the default), core threads are never
+     * terminated due to lack of incoming tasks.
+     *
+     * @return {@code true} if core threads are allowed to time out,
+     *         else {@code false}
+     *
+     * @since 1.6
+     */
+    public boolean allowsCoreThreadTimeOut() {
+        return allowCoreThreadTimeOut;
+    }
+
+    /**
+     * 是否设置核心线程的空闲时的存活时间,如果设为true,则跟额外线程采用相同的存活时间
+     * Sets the policy governing whether core threads may time out and
+     * terminate if no tasks arrive within the keep-alive time, being
+     * replaced if needed when new tasks arrive. When false, core
+     * threads are never terminated due to lack of incoming
+     * tasks. When true, the same keep-alive policy applying to
+     * non-core threads applies also to core threads. To avoid
+     * continual thread replacement, the keep-alive time must be
+     * greater than zero when setting {@code true}. This method
+     * should in general be called before the pool is actively used.
+     *
+     * @param value {@code true} if should time out, else {@code false}
+     * @throws IllegalArgumentException if value is {@code true}
+     *         and the current keep-alive time is not greater than zero
+     *
+     * @since 1.6
+     */
+    public void allowCoreThreadTimeOut(boolean value) {
+        if (value && keepAliveTime <= 0)
+            throw new IllegalArgumentException("Core threads must have nonzero keep alive times");
+        if (value != allowCoreThreadTimeOut) {
+            allowCoreThreadTimeOut = value;
+            if (value)
+                interruptIdleWorkers();
+        }
+    }
+
+    // User-level queue utilities
 
     /**
      * Returns the task queue used by this executor. Access to the
@@ -1805,7 +1828,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         tryTerminate(); // In case SHUTDOWN and now empty
     }
 
-    /* Statistics */
+    // Statistics
 
     /**
      * Returns the current number of threads in the pool.
@@ -1945,7 +1968,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             "]";
     }
 
-    /* Extension hooks */
+    // Extension hooks
 
     /**
      * Method invoked prior to executing the given Runnable in the
@@ -2022,7 +2045,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      */
     protected void terminated() { }
 
-    /* Predefined RejectedExecutionHandlers */
+    // Predefined RejectedExecutionHandlers
 
     /**
      * A handler for rejected tasks that runs the rejected task
