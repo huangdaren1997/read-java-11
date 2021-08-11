@@ -321,9 +321,11 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ThreadPoolExecutor extends AbstractExecutorService {
     /**
-     * 线程池生命周期管理:使用一个AtomicInteger对象来存储线程池状态，把Integer的32位分成两部分，前3位用来记录线程池的状态，剩下的29位用来记录线程池中的线程数(workerCount)
+     * 线程池生命周期管理:
+     *      使用一个AtomicInteger对象来存储线程池状态，
+     *      把Integer的32位分成两部分，前3位用来记录线程池的状态，剩下的29位用来记录线程池中的线程数(workerCount)
      * 线程状态：
-     *  RUNNING ： 接受新任务，处理队列中的任务
+     *  RUNNING ：接受新任务，处理队列中的任务
      *  SHUTDOWN: 不接受新任务，但是处理队列中的任务
      *  STOP:     不接受新任务，不处理队列中的任务，中断正在执行的任务（interrupt）
      *  TIDYING:  所有任务已被终止, workerCount为O,
@@ -365,7 +367,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * The numerical order among these values matters, to allow
      * ordered comparisons. The runState monotonically increases over
      * time, but need not hit each state. The transitions are:
-     * 线程池状态转移
+     * <strong>线程池状态转移</strong>
      * RUNNING -> SHUTDOWN
      *    On invocation of shutdown()
      * (RUNNING or SHUTDOWN) -> STOP
@@ -389,7 +391,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      */
     private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
     private static final int COUNT_BITS = Integer.SIZE - 3; // 32 -3 = 29
-    private static final int COUNT_MASK = (1 << COUNT_BITS) - 1;
+    private static final int COUNT_MASK = (1 << COUNT_BITS) - 1; // 0001_1111_1111_1111_1111_1111_1111_1111
 
     // runState is stored in the high-order bits
     private static final int RUNNING    = -1 << COUNT_BITS;  // 1010_0000_0000_0000_0000_0000_0000_0000
@@ -399,9 +401,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     private static final int TERMINATED =  3 << COUNT_BITS;  // 0110_0000_0000_0000_0000_0000_0000_0000
 
     // Packing and unpacking ctl
-    private static int runStateOf(int c)     { return c & ~COUNT_MASK; } // 计算线程池当前运行状态
+    private static int runStateOf(int c)     { return c & ~COUNT_MASK; }  // 计算线程池当前运行状态
     private static int workerCountOf(int c)  { return c & COUNT_MASK; }  // 计算当前线程数
-    private static int ctlOf(int rs, int wc) { return rs | wc; }        // 通过状态和线程数生成ctl
+    private static int ctlOf(int rs, int wc) { return rs | wc; }  // 通过状态和线程数生成ctl
 
     /*
      * Bit field accessors that don't require unpacking ctl.
@@ -1159,7 +1161,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         }
     }
 
-    // Public constructors and methods
+    // 公共构造器和方法
 
     /**
      * Creates a new {@code ThreadPoolExecutor} with the given initial

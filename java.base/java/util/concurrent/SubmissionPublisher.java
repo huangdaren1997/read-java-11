@@ -335,6 +335,7 @@ public class SubmissionPublisher<T> implements Publisher<T>,
      * @param subscriber the subscriber
      * @throws NullPointerException if subscriber is null
      */
+    @Override
     public void subscribe(Subscriber<? super T> subscriber) {
         if (subscriber == null) throw new NullPointerException();
         int max = maxBufferCapacity; // allocate initial array
